@@ -1,0 +1,8 @@
+# Módosított fájlok, mappák kijelölése
+git add .
+#Jelenlegi eltérések megjelenítése
+git status
+#Commit és elnevezése "mi változott"
+git commit -m "Update"
+#változások feltötése
+git push
