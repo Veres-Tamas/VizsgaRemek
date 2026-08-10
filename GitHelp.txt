@@ -10,3 +10,7 @@ git push
 # változások pusholása előtt érdemes egy git fetch és pull konfliktusok elkerülése végett
 git fetch
 git pull
+
+Pullolás:
+git init .
+git pull https://github.com/Veres-Tamas/VizsgaRemek.git
