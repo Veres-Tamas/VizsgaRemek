@@ -1,1 +1,10 @@
-SQL Mentés beállítása amit lehet exportálni/importálni
+TODO:
+Létszám hozzáadása
+Infók hozzáadása, térkép, befogadóképesség...
+Több helyszín hozzáadása
+Riportálási lehetőség (volt e fa, kár, probléma)
+Hasznos infók, elérhetőségek (tűzgyújtási tilalom, erdészet,...
+	hasznos tippek, tanácsok)
+Fiók generálás (?)
+DONE:
+
