@@ -6,10 +6,12 @@ git status
 git commit -m "Update"
 #változások feltötése
 git push
+git push -u origin main
 
 # változások pusholása előtt érdemes egy git fetch és pull konfliktusok elkerülése végett
 git fetch
 git pull
+git branch -M main
 
 Pullolás:
 git init .

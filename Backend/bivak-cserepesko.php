@@ -1,13 +1,29 @@
 <?php
-session_start();
+// A Cserepes-kő bivakhely részletoldala:
+//   - megjeleníti a helyszín adatait,
+//   - form-ot ad a "tervezett időpont jelzéséhez" (POST -> mentes.php),
+//   - listázza az eddigi bejelentéseket, a saját bejelentés(ek) mellett
+//     "Szerkesztés" linkkel.
+require 'auth.php';
 require 'db_config.php';
+session_ervenyesitese($pdo);
 
+// Ez a konstans érték köti össze ezt az oldalt a bejelentesek.helyszin
+// oszlopban tárolt adattal: a mentes.php ezt kapja meg rejtett mezőként,
+// az alábbi lekérdezés pedig csak az ide tartozó sorokat kéri le.
 $helyszin = 'Cserepes-kő';
 
-$stmt = $pdo->prepare('SELECT nev, datum_tol, datum_ig FROM bejelentesek WHERE helyszin = :helyszin ORDER BY datum_tol ASC');
+// Csak ehhez a helyszínhez tartozó bejelentéseket kérjük le, a legkorábbi
+// időponttal kezdve. A user_id-ra azért van szükség (nem csak megjelenítésre),
+// hogy alább el tudjuk dönteni, kinek jelenjen meg a "Szerkesztés" link.
+$stmt = $pdo->prepare('SELECT id, user_id, nev, datum_tol, datum_ig, megjegyzes FROM bejelentesek WHERE helyszin = :helyszin ORDER BY datum_tol ASC');
 $stmt->execute(['helyszin' => $helyszin]);
 $bejelentesek = $stmt->fetchAll();
 
+// A mentes.php (vagy foglalas_szerkesztes.php) egy sikeres/hibás művelet után
+// ide irányít vissza, és ebbe a session kulcsba teszi az üzenetet. Itt olvassuk
+// ki, majd rögtön törüljük is - így csak egyszer, az oldal következő betöltésekor
+// jelenik meg ("flash", azaz felvillanó üzenet).
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 ?>
@@ -58,6 +74,28 @@ unset($_SESSION['flash']);
   .back-link:focus-visible {
     color: var(--accent);
   }
+
+  .top-bar {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .top-bar .back-link { margin: 0; }
+
+  .nav-auth {
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .nav-auth a { color: var(--accent); text-decoration: none; }
+  .nav-auth a:hover { text-decoration: underline; }
 
   main {
     max-width: 900px;
@@ -217,11 +255,38 @@ unset($_SESSION['flash']);
     color: var(--muted);
     font-size: 0.9rem;
   }
+
+  .megjegyzes-cell {
+    color: var(--muted);
+    max-width: 220px;
+  }
+
+  .edit-link {
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .edit-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-  <a class="back-link" href="../Frontend/galeria.html">&larr; Vissza a galériához</a>
+  <!-- Fejléc: bal oldalt vissza a galériára, jobb oldalt a bejelentkezés
+       állapota - vagy a felhasználó neve + kijelentkezés, vagy belépés/regisztráció linkek. -->
+  <div class="top-bar">
+    <a class="back-link" href="../Frontend/galeria.php">&larr; Vissza a galériához</a>
+    <div class="nav-auth">
+      <?php if (bejelentkezve()): ?>
+        Bejelentkezve: <strong><?= htmlspecialchars(aktualis_user_nev()) ?></strong>
+        &middot; <a href="kijelentkezes.php">Kijelentkezés</a>
+      <?php else: ?>
+        <a href="belepes.php">Belépés</a> &middot; <a href="regisztracio.php">Regisztráció</a>
+      <?php endif; ?>
+    </div>
+  </div>
 
   <main>
     <div class="meta">Bivak</div>
@@ -234,20 +299,38 @@ unset($_SESSION['flash']);
       <p>Cseréld le ezt a szöveget a saját tartalmadra — akár egy rövid útibeszámoló, akár praktikus információk (megközelítés, vízforrás, alkalmasság éjszakázásra) formájában.</p>
     </div>
 
+    <!-- Visszajelző (flash) üzenet a mentés/szerkesztés után, ha van -->
     <?php if ($flash): ?>
       <div class="flash <?= htmlspecialchars($flash['tipus']) ?>"><?= htmlspecialchars($flash['uzenet']) ?></div>
     <?php endif; ?>
 
+    <!-- Új bejelentés form - a mentes.php dolgozza fel -->
     <section class="bejelentes">
       <h2>Tervezed, hogy itt szállsz meg?</h2>
-      <p class="hint">Ez a hely hivatalosan nem foglalható. Ez a bejelentés csak jelzés másoknak, hogy mikor tervezed használni — nem garantálja, hogy szabad lesz.</p>
+      <p class="hint">
+        Ez a hely hivatalosan nem foglalható. Ez a bejelentés csak jelzés másoknak, hogy mikor tervezed használni — nem garantálja, hogy szabad lesz.
+        <?php if (!bejelentkezve()): ?>
+          Ha <a href="regisztracio.php">regisztrálsz</a> vagy <a href="belepes.php">belépsz</a>, a bejelentésedet utólag is szerkesztheted (pl. ha valami hiányzott vagy sérült volt a helyszínen).
+        <?php endif; ?>
+      </p>
       <form method="post" action="mentes.php">
+        <!-- Rejtett mezők: a mentes.php ezekből tudja, melyik helyszínről van szó,
+             és sikeres mentés után melyik oldalra kell visszairányítani. -->
         <input type="hidden" name="helyszin" value="<?= htmlspecialchars($helyszin) ?>">
         <input type="hidden" name="vissza" value="bivak-cserepesko.php">
 
-        <label>Neved
-          <input type="text" name="nev" required maxlength="100">
-        </label>
+        <?php if (bejelentkezve()): ?>
+          <!-- Bejelentkezve a név mező csak megjelenítés (disabled - nincs "name"
+               attribútuma, tehát nem is küldi el a form): a mentes.php mindenképp
+               a fiók nevét fogja használni, ez itt csak vizuális visszajelzés. -->
+          <label>Neved
+            <input type="text" value="<?= htmlspecialchars(aktualis_user_nev()) ?>" disabled>
+          </label>
+        <?php else: ?>
+          <label>Neved
+            <input type="text" name="nev" required maxlength="100">
+          </label>
+        <?php endif; ?>
         <label>Mettől
           <input type="date" name="datum_tol" required>
         </label>
@@ -258,6 +341,7 @@ unset($_SESSION['flash']);
       </form>
     </section>
 
+    <!-- Meglévő bejelentések listája, dátum szerint rendezve -->
     <section class="lista">
       <h2>Tervezett megszállások</h2>
       <?php if (empty($bejelentesek)): ?>
@@ -265,7 +349,7 @@ unset($_SESSION['flash']);
       <?php else: ?>
         <table>
           <thead>
-            <tr><th>Név</th><th>Mettől</th><th>Meddig</th></tr>
+            <tr><th>Név</th><th>Mettől</th><th>Meddig</th><th>Megjegyzés</th><th></th></tr>
           </thead>
           <tbody>
             <?php foreach ($bejelentesek as $b): ?>
@@ -273,6 +357,16 @@ unset($_SESSION['flash']);
                 <td><?= htmlspecialchars($b['nev']) ?></td>
                 <td><?= htmlspecialchars(date('Y.m.d.', strtotime($b['datum_tol']))) ?></td>
                 <td><?= htmlspecialchars(date('Y.m.d.', strtotime($b['datum_ig']))) ?></td>
+                <!-- Ha még nincs megjegyzés (NULL), egy gondolatjelet mutatunk helyette -->
+                <td class="megjegyzes-cell"><?= $b['megjegyzes'] !== null ? nl2br(htmlspecialchars($b['megjegyzes'])) : '—' ?></td>
+                <td>
+                  <!-- A "Szerkesztés" link csak a saját bejelentésnél jelenik meg:
+                       be kell jelentkezve lenni, ÉS a sor user_id-jának egyeznie
+                       kell a bejelentkezett felhasználóéval. -->
+                  <?php if (bejelentkezve() && (int) $b['user_id'] === aktualis_user_id()): ?>
+                    <a class="edit-link" href="foglalas_szerkesztes.php?id=<?= (int) $b['id'] ?>">Szerkesztés</a>
+                  <?php endif; ?>
+                </td>
               </tr>
             <?php endforeach; ?>
           </tbody>

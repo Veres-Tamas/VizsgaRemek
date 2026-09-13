@@ -1,10 +1,22 @@
 TODO:
-Létszám hozzáadása
+Elfelejtett jelszó funkció
+Létszám hozzáadása, létszám mező, kapacitás
 Infók hozzáadása, térkép, befogadóképesség...
 Több helyszín hozzáadása
-Riportálási lehetőség (volt e fa, kár, probléma)
 Hasznos infók, elérhetőségek (tűzgyújtási tilalom, erdészet,...
 	hasznos tippek, tanácsok)
-Fiók generálás (?)
-DONE:
+Bejelentés törlésének lehetősége
+Lejárt bejelentések elhalványítása/elrejtése
 
+Naptár nézet
+Fénykép csatolása e jelentéshez
+Dinamikus helyszín kezelés admin fiókkal
+Email értesítés vagy elérhetőség megosztásának lehetősége
+
+Admin/moderátor szerepkör
+Statisztika (!)
+Reszponszív, "jelenleg foglalt" kijelző
+
+DONE:
+Fiók generálás
+Riportálási lehetőség (volt e fa, kár, probléma)

@@ -1,3 +1,16 @@
+<?php
+// Főoldal (galéria): innen lehet eljutni a két bivakhely részletoldalára.
+// PHP-ból van (nem sima .html-ből), mert a fejlécben meg kell jeleníteni
+// a bejelentkezés állapotát, és meg kell tudnunk jeleníteni a más oldalakról
+// (belépés, kijelentkezés, regisztráció) érkező visszajelző üzeneteket.
+require '../Backend/auth.php';
+require '../Backend/db_config.php';
+session_ervenyesitese($pdo);
+
+// Lásd bivak-cserepesko.php: session flash üzenet kiolvasása és törlése.
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+?>
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -11,6 +24,7 @@
     --text: #f2f0ea;
     --muted: #8b8d97;
     --accent: #e8b04b;
+    --error: #e08080;
   }
 
   * { box-sizing: border-box; }
@@ -95,9 +109,57 @@
   @media (prefers-reduced-motion: reduce) {
     .photo-card { transition: none; }
   }
+
+  .top-bar {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  .nav-auth {
+    font-family: Arial, sans-serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .nav-auth a { color: var(--accent); text-decoration: none; }
+  .nav-auth a:hover { text-decoration: underline; }
+
+  .flash {
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    padding: 0.9rem 1.2rem;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .flash.siker { background: rgba(232,176,75,0.12); color: var(--accent); border: 1px solid var(--accent); }
+  .flash.hiba { background: rgba(224,128,128,0.12); color: var(--error); border: 1px solid var(--error); }
 </style>
 </head>
 <body>
+
+  <!-- Fejléc: bejelentkezés állapota, ugyanaz a minta mint a bivak-oldalakon -->
+  <div class="top-bar">
+    <div class="nav-auth">
+      <?php if (bejelentkezve()): ?>
+        Bejelentkezve: <strong><?= htmlspecialchars(aktualis_user_nev()) ?></strong>
+        &middot; <a href="../Backend/kijelentkezes.php">Kijelentkezés</a>
+      <?php else: ?>
+        <a href="../Backend/belepes.php">Belépés</a> &middot; <a href="../Backend/regisztracio.php">Regisztráció</a>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Pl. "Sikeresen kijelentkeztél" - a kijelentkezes.php / belepes_feldolgozas.php stb. állítja be -->
+  <?php if ($flash): ?>
+    <div class="flash <?= htmlspecialchars($flash['tipus']) ?>"><?= htmlspecialchars($flash['uzenet']) ?></div>
+  <?php endif; ?>
 
   <h1>Fotógaléria</h1>
   <div class="subtitle">Kattints egy képre a részletekért</div>
