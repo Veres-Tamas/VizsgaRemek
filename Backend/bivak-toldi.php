@@ -352,6 +352,11 @@ unset($_SESSION['flash']);
                        kell a bejelentkezett felhasználóéval. -->
                   <?php if (bejelentkezve() && (int) $b['user_id'] === aktualis_user_id()): ?>
                     <a class="edit-link" href="foglalas_szerkesztes.php?id=<?= (int) $b['id'] ?>">Szerkesztés</a>
+<form method="post" action="foglalas_torles.php" style="display:inline;"
+      onsubmit="return confirm('Biztosan törölni szeretnéd ezt a bejelentést?');">
+    <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
+    <button type="submit" class="delete-button">Törlés</button>
+</form>
                   <?php endif; ?>
                 </td>
               </tr>
