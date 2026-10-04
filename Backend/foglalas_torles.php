@@ -16,7 +16,7 @@ if (!bejelentkezve()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../Frontend/galeria.php');
+    header('Location: ../Backend/galeria.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($id <= 0) {
         'uzenet' => 'Érvénytelen bejelentés.',
     ];
 
-    header('Location: ../Frontend/galeria.php');
+    header('Location: ../Backend/galeria.php');
     exit;
 }
 
@@ -50,13 +50,13 @@ if (
         'uzenet' => 'Ezt a bejelentést nem törölheted.',
     ];
 
-    header('Location: ../Frontend/galeria.php');
+    header('Location: ../Backend/galeria.php');
     exit;
 }
 
 $vissza = ($bejelentes['helyszin'] === 'Toldi kunyhó')
-    ? '../Frontend/bivak-toldi.php'
-    : '../Frontend/bivak-cserepesko.php';
+    ? '../Backend/bivak-toldi.php'
+    : '../Backend/bivak-cserepesko.php';
 
 $stmt = $pdo->prepare(
     'DELETE FROM bejelentesek
